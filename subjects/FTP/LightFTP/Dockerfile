@@ -1,9 +1,9 @@
-FROM ubuntu:20.04
+FROM ubuntu:16.04
 
 # Install common dependencies
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -y update && \
-    apt-get -y install sudo \ 
+    apt-get -y install sudo \
     apt-utils \
     build-essential \
     openssl \
@@ -29,7 +29,8 @@ RUN groupadd ubuntu && \
 
 RUN chmod 777 /tmp
 
-RUN pip3 install gcovr==4.2
+RUN python3 -m pip install --upgrade pip==20.3.4 && \
+    pip3 install --trusted-host pypi.org --trusted-host files.pythonhosted.org gcovr==4.2
 
 # Use ubuntu as default username
 USER ubuntu
@@ -71,7 +72,7 @@ env ASAN_OPTIONS='abort_on_error=1:symbolize=0:detect_leaks=0:detect_stack_use_a
 RUN cd $WORKDIR && \
     git clone https://github.com/hfiref0x/LightFTP.git && \
     cd LightFTP && \
-    git checkout 5980ea1 && \
+    git checkout f067e56 && \
     patch -p1 < ${WORKDIR}/fuzzing.patch && \
     cd Source/Release && \
     AFL_USE_ASAN=1 CC=afl-clang-fast make clean all $MAKE_OPT
@@ -87,7 +88,7 @@ RUN cd ${WORKDIR}/LightFTP/Source/Release && \
 RUN cd $WORKDIR && \
     git clone https://github.com/hfiref0x/LightFTP.git LightFTP-gcov && \
     cd LightFTP-gcov && \
-    git checkout 5980ea1 && \
+    git checkout f067e56 && \
     patch -p1 < ${WORKDIR}/gcov.patch && \
     cd Source/Release && \
     make CFLAGS="-fprofile-arcs -ftest-coverage" CPPFLAGS="-fprofile-arcs -ftest-coverage" CXXFLAGS="-fprofile-arcs -ftest-coverage" LDFLAGS="-fprofile-arcs -ftest-coverage" clean all $MAKE_OPT
@@ -103,9 +104,14 @@ COPY --chown=ubuntu:ubuntu ftp.dict ${WORKDIR}/ftp.dict
 COPY --chown=ubuntu:ubuntu cov_script.sh ${WORKDIR}/cov_script
 COPY --chown=ubuntu:ubuntu run.sh ${WORKDIR}/run
 COPY --chown=ubuntu:ubuntu clean.sh ${WORKDIR}/ftpclean
+COPY --chown=ubuntu:ubuntu my-scripts/exec-seeds.sh ${WORKDIR}
+COPY --chown=ubuntu:ubuntu my-scripts/convert-to-replay.py ${WORKDIR}
 
 
 # For debugging purposes
 USER root
+RUN mkdir -p ${WORKDIR}/cov_out
+RUN chown -R ubuntu:ubuntu ${WORKDIR}/cov_out
+RUN chmod -R +rw ${WORKDIR}/cov_out
 RUN apt-get -y install ftp
 USER ubuntu

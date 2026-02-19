@@ -16,13 +16,19 @@ def main(csv_file, put, runs, cut_off, step, out_file):
   #Store in a list first for efficiency
   mean_list = []
 
+  #Get available fuzzers
+  fuzzers = df['fuzzer'].unique()
+
   for subject in [put]:
-    for fuzzer in ['aflnet', 'aflnwe']:
+    for fuzzer in fuzzers:
       for cov_type in ['b_abs', 'b_per', 'l_abs', 'l_per']:
         #get subject & fuzzer & cov_type-specific dataframe
         df1 = df[(df['subject'] == subject) & 
                          (df['fuzzer'] == fuzzer) & 
                          (df['cov_type'] == cov_type)]
+
+        if df1.empty:
+          continue
 
         mean_list.append((subject, fuzzer, cov_type, 0, 0.0))
         for time in range(1, cut_off + 1, step):
@@ -33,18 +39,25 @@ def main(csv_file, put, runs, cut_off, step, out_file):
             #get run-specific data frame
             df2 = df1[df1['run'] == run]
 
+            if df2.empty:
+              continue
+
             #get the starting time for this run
             start = df2.iloc[0, 0]
 
             #get all rows given a cutoff time
             df3 = df2[df2['time'] <= start + time*60]
             
+            if df3.empty:
+              continue
+
             #update total coverage and #runs
             cov_total += df3.tail(1).iloc[0, 5]
             run_count += 1
           
           #add a new row
-          mean_list.append((subject, fuzzer, cov_type, time, cov_total / run_count))
+          if run_count > 0:
+            mean_list.append((subject, fuzzer, cov_type, time, cov_total / run_count))
 
   #Convert the list to a dataframe
   mean_df = pd.DataFrame(mean_list, columns = ['subject', 'fuzzer', 'cov_type', 'time', 'cov'])
@@ -54,30 +67,30 @@ def main(csv_file, put, runs, cut_off, step, out_file):
 
   for key, grp in mean_df.groupby(['fuzzer', 'cov_type']):
     if key[1] == 'b_abs':
-      axes[0, 0].plot(grp['time'], grp['cov'])
+      axes[0, 0].plot(grp['time'], grp['cov'], label=key[0])
       #axes[0, 0].set_title('Edge coverage over time (#edges)')
       axes[0, 0].set_xlabel('Time (in min)')
       axes[0, 0].set_ylabel('#edges')
     if key[1] == 'b_per':
-      axes[1, 0].plot(grp['time'], grp['cov'])
+      axes[1, 0].plot(grp['time'], grp['cov'], label=key[0])
       #axes[1, 0].set_title('Edge coverage over time (%)')
       axes[1, 0].set_ylim([0,100])
       axes[1, 0].set_xlabel('Time (in min)')
       axes[1, 0].set_ylabel('Edge coverage (%)')
     if key[1] == 'l_abs':
-      axes[0, 1].plot(grp['time'], grp['cov'])
+      axes[0, 1].plot(grp['time'], grp['cov'], label=key[0])
       #axes[0, 1].set_title('Line coverage over time (#lines)')
       axes[0, 1].set_xlabel('Time (in min)')
       axes[0, 1].set_ylabel('#lines')
     if key[1] == 'l_per':
-      axes[1, 1].plot(grp['time'], grp['cov'])
+      axes[1, 1].plot(grp['time'], grp['cov'], label=key[0])
       #axes[1, 1].set_title('Line coverage over time (%)')
       axes[1, 1].set_ylim([0,100])
       axes[1, 1].set_xlabel('Time (in min)')
       axes[1, 1].set_ylabel('Line coverage (%)')
 
   for i, ax in enumerate(fig.axes):
-    ax.legend(('AFLNet', 'AFLNwe'), loc='upper left')
+    ax.legend(loc='upper left')
     ax.grid()
 
   #Save to file

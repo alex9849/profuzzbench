@@ -3,7 +3,7 @@ FROM ubuntu:20.04
 # Install common dependencies
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -y update && \
-    apt-get -y install sudo \ 
+    apt-get -y install sudo \
     apt-utils \
     build-essential \
     openssl \
@@ -11,6 +11,9 @@ RUN apt-get -y update && \
     graphviz-dev \
     git \
     autoconf \
+    libltdl-dev \
+    ca-certificates \
+    libtool-bin automake autoconf build-essential python bison libglib2.0-dev \
     libgnutls28-dev \
     libssl-dev \
     llvm \
@@ -29,7 +32,8 @@ RUN groupadd ubuntu && \
 
 RUN chmod 777 /tmp
 
-RUN pip3 install gcovr==4.2
+RUN python3 -m pip install --upgrade pip==20.3.4 && \
+    pip3 install --trusted-host pypi.org --trusted-host files.pythonhosted.org gcovr==4.2
 
 # Use ubuntu as default username
 USER ubuntu
@@ -67,7 +71,7 @@ RUN apt-get -y install dnsutils
 COPY --chown=ubuntu:ubuntu dnsmasq.patch ${WORKDIR}/dnsmasq.patch
 
 # Set up environment variables for ASAN
-env ASAN_OPTIONS='abort_on_error=1:symbolize=0:detect_leaks=0:detect_stack_use_after_return=1:detect_container_overflow=0:poison_array_cookie=0:malloc_fill_byte=0:max_malloc_fill_size=16777216'
+ENV ASAN_OPTIONS='abort_on_error=1:symbolize=0:detect_leaks=0:detect_stack_use_after_return=1:detect_container_overflow=0:poison_array_cookie=0:malloc_fill_byte=0:max_malloc_fill_size=16777216'
 
 # Download and compile Dnsmasq for fuzzing
 RUN cd $WORKDIR && \
