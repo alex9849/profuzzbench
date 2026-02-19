@@ -1,0 +1,7 @@
+USER ubuntu
+PASS ubuntu
+STOR ckfiAKshJ.mzzoGweUR7ubJJgvo
+CWD ISt1ZwkqxUFS4GemKAO/5du2N6vVP/WQl3F57/27Z4/D/c31ks7AceHmJlB/yd2yEEf
+RNFR 0eHU
+RNTO na.cRL7ImIJpanPehqS
+QUIT

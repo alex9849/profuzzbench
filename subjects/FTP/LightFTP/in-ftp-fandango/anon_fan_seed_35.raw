@@ -1,0 +1,6 @@
+USER anonymous
+PASS ubuntu
+LIST
+STOR iQwWELt6
+MLSD
+QUIT

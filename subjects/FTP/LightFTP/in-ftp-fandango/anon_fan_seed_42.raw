@@ -1,0 +1,7 @@
+USER anonymous
+PASS ubuntu
+STOR X7DKIkIlrja
+OPTS -<UwXa=j4FDnar::x
+RNFR 6KMr3p5Oux7sxcFyM/n/Q.94iPuzYWhHksaGDgXH
+RNTO B/gEgdUvtU80raKqcK/1m3/ZzDljR9188OXn/ZGmNzXzy2hnx19r2RTpX
+QUIT

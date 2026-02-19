@@ -1,0 +1,10 @@
+USER anonymous
+PASS ubuntu
+HELP
+RETR AjQ.WN0EedTNqvmh1j
+PROT C
+CWD FEmNT/274jG
+PORT 48,0,0,0,33,0
+LIST
+PWD
+QUIT

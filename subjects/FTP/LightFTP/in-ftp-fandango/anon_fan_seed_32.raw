@@ -1,0 +1,8 @@
+USER anonymous
+PASS ubuntu
+STOR qMw.IeYOIAJ
+HELP
+PASV
+RETR k3ocfGFkQIYzbirjKd
+SIZE uBYwWwb5e12thVQ/6lJqa/yUvaPD1/lakSdOHT4D/EBJV5GR1VqgY0K2r/VLrda/k5pyLAJ/kPa0cePrBouFTOw
+QUIT

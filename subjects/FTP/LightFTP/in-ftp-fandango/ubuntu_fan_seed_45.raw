@@ -1,0 +1,8 @@
+USER ubuntu
+PASS ubuntu
+STOR lxrv.7EO
+CDUP
+RMD 5
+NOOP
+SIZE ysoPJrtpfcSwu3Z/fKbFlA0X/e2nIveT3unRmjZ/mczAPsTt
+QUIT

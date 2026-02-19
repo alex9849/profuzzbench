@@ -1,0 +1,7 @@
+USER anonymous
+PASS ubuntu
+RETR XJmeVawhoYRrPe.2IMpxFUDsdp
+PROT S
+CDUP
+EPSV
+QUIT

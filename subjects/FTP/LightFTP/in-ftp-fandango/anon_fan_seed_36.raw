@@ -1,0 +1,9 @@
+USER anonymous
+PASS ubuntu
+STOR 6L6s5dmWL85Kw
+NOOP
+FEAT
+PBSZ 5
+SYST
+MLSD
+QUIT

@@ -1,0 +1,9 @@
+USER ubuntu
+PASS ubuntu
+ABOR
+STOR 0eEBAha.hqfWvaYK6zxCT3cpj
+REST qt2B0B6G
+STOR JwMtzaiuqMBkUDgfjnlU
+TYPE I
+PORT 88,0,0,0,207,0
+QUIT

@@ -1,0 +1,6 @@
+USER anonymous
+PASS ubuntu
+OPTS >.
+ABOR
+ABOR
+QUIT

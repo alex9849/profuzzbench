@@ -1,0 +1,6 @@
+USER anonymous
+PASS ubuntu
+STOR MXw7a
+CDUP
+MLSD HgsrTcXlU/aQJnzCwAe4pK4Z/BrC2qJyDb/2kr7xP
+QUIT

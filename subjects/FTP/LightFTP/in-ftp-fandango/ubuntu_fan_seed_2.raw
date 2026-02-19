@@ -1,0 +1,6 @@
+USER ubuntu
+PASS ubuntu
+RNFR dFzdul2n0jdeb5/TxA/uolVnQT9/jU0XWs0ayujJr
+RNTO ym/UtJcNeOu7hD7z3oq
+SITE HELP
+QUIT

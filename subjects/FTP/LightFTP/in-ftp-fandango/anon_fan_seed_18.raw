@@ -1,0 +1,7 @@
+USER anonymous
+PASS ubuntu
+CWD LYsi4o9sCJvgjQtA/EdeStmeOO/Tn8chlehC/Kf7DqKnVJdtrGQyHj
+STOR xXN2J1CQaoy.sfmFKewxaMzCaW
+RNFR VoHt37IQ8k18P/OTEAppsOEt/IPw1fNpiG/5cfZ8ZnMpk3/1p1veSuAn9/JIYvVv5sLVSawu.OwGCe
+RNTO JqQb4ee8cnDr.e3Lin
+QUIT

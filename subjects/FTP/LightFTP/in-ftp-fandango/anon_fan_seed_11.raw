@@ -1,0 +1,7 @@
+USER anonymous
+PASS ubuntu
+NOOP
+RNFR VbT19iO4IiE1/ULVdOs8/Z6F6Eq/X.8Hc89Wt9FCbBz9pTe
+RNTO Z5ZosQYv/ity/z60
+TYPE I
+QUIT

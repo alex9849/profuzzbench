@@ -1,0 +1,7 @@
+USER ubuntu
+PASS ubuntu
+HELP
+STOR cUZvXpOd4OErbwcp
+PASV
+MLSD Jt2tvw9ogmaaqeH/ZM/MDSBzxnUNnjshId3kQ/HGH7
+QUIT

@@ -1,0 +1,5 @@
+USER anonymous
+PASS ubuntu
+STOR Sl.H261dTo3zFzGx
+REST 1-gl
+QUIT

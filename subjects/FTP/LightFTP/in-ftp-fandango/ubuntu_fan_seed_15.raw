@@ -1,0 +1,5 @@
+USER ubuntu
+PASS ubuntu
+MLSD PTbwrq
+AUTH ,d
+QUIT
