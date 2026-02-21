@@ -71,6 +71,8 @@ done
 kill -SIGUSR1 $SERVER_PID 2>/dev/null || true
 wait $SERVER_PID || true
 
+rm -f $SEED_FILES/*_converted.raw
+
 
 # Generate HTML coverage report for only the file(s) matching GCOVR_FILTER.
 # --filter limits which source files appear in the report.
