@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:20.04
 
 # Install common dependencies
 ENV DEBIAN_FRONTEND=noninteractive
@@ -66,7 +66,7 @@ COPY --chown=ubuntu:ubuntu fuzzing.patch ${WORKDIR}/fuzzing.patch
 COPY --chown=ubuntu:ubuntu gcov.patch ${WORKDIR}/gcov.patch
 
 # Set up environment variables for ASAN
-env ASAN_OPTIONS='abort_on_error=1:symbolize=0:detect_leaks=0:detect_stack_use_after_return=1:detect_container_overflow=0:poison_array_cookie=0:malloc_fill_byte=0:max_malloc_fill_size=16777216'
+ENV ASAN_OPTIONS='abort_on_error=1:symbolize=0:detect_leaks=0:detect_stack_use_after_return=1:detect_container_overflow=0:poison_array_cookie=0:malloc_fill_byte=0:max_malloc_fill_size=16777216'
 
 # Download and compile LightFTP for fuzzing
 RUN cd $WORKDIR && \

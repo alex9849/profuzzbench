@@ -9,11 +9,11 @@
 # chmod 777 ./cov_out || true
 
 docker run --rm -it \
-  -v ./in-ftp/:/home/ubuntu/experiments/seeds/ \
+  -v ./in-ftp-fandango/:/home/ubuntu/experiments/seeds/ \
   -v ./cov_out/:/home/ubuntu/experiments/cov_out/ \
   -e COV_OUT_DIR=/home/ubuntu/experiments/cov_out/ \
   -e GCOVR_FILTER='.*Source/Release/SomeFile\.c$' \
-  lightftp-orig-seeds:latest \
+  lightftp-fan-seeds:latest \
   /bin/bash -lc 'exec-seeds.sh /home/ubuntu/experiments/seeds'
 
 

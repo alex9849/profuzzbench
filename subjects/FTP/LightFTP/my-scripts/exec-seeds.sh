@@ -44,30 +44,32 @@ gcovr -r .. -s -d > /dev/null 2>&1 || true
 pkill fftp > /dev/null 2>&1 || true
 
 #timeout -k 0 -s SIGUSR1 5s
+./fftp fftp.conf "${PORT}" > /dev/null 2>&1 &
+SERVER_PID=$!
 
+# Wait for server to start listening
+for i in {1..20}; do
+  if netstat -ltn 2>/dev/null | grep -q ":${PORT} "; then
+    break
+  fi
+  sleep 0.1
+done
+
+rm -f $SEED_FILES/*_converted.raw
 for f in $(echo $SEED_FILES/*); do
   echo $f
   echo "${f}_converted.raw"
-  ./fftp fftp.conf "${PORT}" > /dev/null 2>&1 &
-  SERVER_PID=$!
 
-  # Wait for server to start listening
-  for i in {1..20}; do
-    if netstat -ltn 2>/dev/null | grep -q ":${PORT} "; then
-      break
-    fi
-    sleep 0.1
-  done
 
   python3 /home/ubuntu/experiments/convert-to-replay.py $f "${f}_converted.raw"
   CONVERTED_SEED="${f}_converted.raw"
   aflnet-replay "${CONVERTED_SEED}" FTP "${PORT}" 1 > /dev/null 2>&1
-
   #sleep 1
-  kill -SIGUSR1 $SERVER_PID 2>/dev/null || true
-  wait $SERVER_PID || true
 
 done
+
+kill -SIGUSR1 $SERVER_PID 2>/dev/null || true
+wait $SERVER_PID || true
 
 
 # Generate HTML coverage report for only the file(s) matching GCOVR_FILTER.
