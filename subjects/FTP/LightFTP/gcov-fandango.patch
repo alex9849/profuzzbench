@@ -85,7 +85,7 @@ index ad27c08..1499acd 100644
  
  	free(scb);
 diff --git a/Source/main.c b/Source/main.c
-index eaa1a55..5333ac0 100644
+index eaa1a55..884ee85 100644
 --- a/Source/main.c
 +++ b/Source/main.c
 @@ -11,6 +11,8 @@
@@ -97,11 +97,10 @@ index eaa1a55..5333ac0 100644
  
  FTP_CONFIG	g_cfg;
  int			g_log = -1;
-@@ -24,6 +26,15 @@ static	char	CAFILE[PATH_MAX],
+@@ -24,6 +26,14 @@ static	char	CAFILE[PATH_MAX],
  				KEYFILE[PATH_MAX],
  				KEYFILE_PASS[256];
  
-+extern void __gcov_dump(void);
 +volatile sig_atomic_t g_terminate_requested = 0;
 +
 +void sig_handler(int signo)
@@ -113,7 +112,7 @@ index eaa1a55..5333ac0 100644
  void TLSInit()
  {
  	while (gnutls_global_init() >= 0)
-@@ -76,7 +87,7 @@ int main(int argc, char *argv[])
+@@ -76,7 +86,7 @@ int main(int argc, char *argv[])
  	int			c;
  	uint32_t	bufsize = 65536;
  	pthread_t	thid;
@@ -122,7 +121,7 @@ index eaa1a55..5333ac0 100644
  	if (sizeof (off_t) != 8)
  	{
  		printf("off_t is not 64 bits long");
-@@ -106,9 +117,10 @@ int main(int argc, char *argv[])
+@@ -106,9 +116,10 @@ int main(int argc, char *argv[])
  		if (ParseConfig(cfg, CONFIG_SECTION_NAME, "local_mask", textbuf, bufsize))
  			g_cfg.LocalIPMask = inet_addr(textbuf);
  
@@ -136,7 +135,7 @@ index eaa1a55..5333ac0 100644
  
  		g_cfg.MaxUsers = 1;
  		if (ParseConfig(cfg, CONFIG_SECTION_NAME, "maxusers", textbuf, bufsize))
-@@ -188,10 +200,11 @@ int main(int argc, char *argv[])
+@@ -188,10 +199,10 @@ int main(int argc, char *argv[])
  			break;
  		}
  
@@ -147,7 +146,6 @@ index eaa1a55..5333ac0 100644
 -		} while ((c != 'q') && (c != 'Q'));
 +
 +		pthread_join(thid, NULL);
-+		__gcov_dump();
  
  		break;
  	}

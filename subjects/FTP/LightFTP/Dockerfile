@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 # Install common dependencies
 ENV DEBIAN_FRONTEND=noninteractive
@@ -13,8 +13,8 @@ RUN apt-get -y update && \
     autoconf \
     libgnutls28-dev \
     libssl-dev \
-    llvm \
-    python3-pip \
+    llvm-11 llvm-11-dev clang-11 \
+    python3.11 python3-pip \
     nano \
     net-tools \
     vim \
@@ -22,6 +22,8 @@ RUN apt-get -y update && \
     netcat \
     strace \
     wget
+
+RUN apt-get -y install python3.11 python3.11-dev
 
 # Add a new user ubuntu, pass: ubuntu
 RUN groupadd ubuntu && \
@@ -32,12 +34,18 @@ RUN chmod 777 /tmp
 RUN python3 -m pip install --upgrade pip==20.3.4 && \
     pip3 install --trusted-host pypi.org --trusted-host files.pythonhosted.org gcovr==4.2
 
+RUN python3.11 -m pip install --pre packaging fandango-fuzzer==1.1.0rc1
+
 # Use ubuntu as default username
 USER ubuntu
 WORKDIR /home/ubuntu
 
 # Import environment variable to pass as parameter to make (e.g., to make parallel builds with -j)
 ARG MAKE_OPT
+
+ENV CC=clang-11
+ENV CXX=clang++-11
+ENV LLVM_CONFIG=llvm-config-11
 
 # Set up fuzzers
 RUN git clone https://github.com/profuzzbench/aflnet.git && \
@@ -64,6 +72,7 @@ RUN mkdir $WORKDIR
 
 COPY --chown=ubuntu:ubuntu fuzzing.patch ${WORKDIR}/fuzzing.patch
 COPY --chown=ubuntu:ubuntu gcov.patch ${WORKDIR}/gcov.patch
+COPY --chown=ubuntu:ubuntu gcov-fandango.patch ${WORKDIR}/gcov-fandango.patch
 
 # Set up environment variables for ASAN
 ENV ASAN_OPTIONS='abort_on_error=1:symbolize=0:detect_leaks=0:detect_stack_use_after_return=1:detect_container_overflow=0:poison_array_cookie=0:malloc_fill_byte=0:max_malloc_fill_size=16777216'
@@ -93,8 +102,21 @@ RUN cd $WORKDIR && \
     cd Source/Release && \
     make CFLAGS="-fprofile-arcs -ftest-coverage" CPPFLAGS="-fprofile-arcs -ftest-coverage" CXXFLAGS="-fprofile-arcs -ftest-coverage" LDFLAGS="-fprofile-arcs -ftest-coverage" clean all $MAKE_OPT
 
+RUN cd $WORKDIR && \
+    git clone https://github.com/hfiref0x/LightFTP.git LightFTP-fandango && \
+    cd LightFTP-fandango && \
+    git checkout f067e56 && \
+    patch -p1 < ${WORKDIR}/gcov-fandango.patch && \
+    cd Source/Release && \
+    make CFLAGS="-fprofile-arcs -ftest-coverage" CPPFLAGS="-fprofile-arcs -ftest-coverage" CXXFLAGS="-fprofile-arcs -ftest-coverage" LDFLAGS="-fprofile-arcs -ftest-coverage" clean all $MAKE_OPT
+
+
 # Set up LightFTP for fuzzing
 RUN cd ${WORKDIR}/LightFTP-gcov/Source/Release && \
+    cp ${AFLNET}/tutorials/lightftp/fftp.conf ./ && \
+    cp ${AFLNET}/tutorials/lightftp/ftpclean.sh ./
+
+RUN cd ${WORKDIR}/LightFTP-fandango/Source/Release && \
     cp ${AFLNET}/tutorials/lightftp/fftp.conf ./ && \
     cp ${AFLNET}/tutorials/lightftp/ftpclean.sh ./
 
@@ -106,6 +128,7 @@ COPY --chown=ubuntu:ubuntu run.sh ${WORKDIR}/run
 COPY --chown=ubuntu:ubuntu clean.sh ${WORKDIR}/ftpclean
 COPY --chown=ubuntu:ubuntu my-scripts/exec-seeds.sh ${WORKDIR}
 COPY --chown=ubuntu:ubuntu my-scripts/convert-to-replay.py ${WORKDIR}
+COPY --chown=ubuntu:ubuntu my-scripts/fandango/ ${WORKDIR}/fandango
 
 
 # For debugging purposes
