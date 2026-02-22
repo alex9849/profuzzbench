@@ -25,7 +25,7 @@ index f520c4d..bcf6f32 100644
  	@echo ' '
  
 diff --git a/Source/ftpserv.c b/Source/ftpserv.c
-index ad27c08..1499acd 100644
+index ad27c08..5fafa33 100644
 --- a/Source/ftpserv.c
 +++ b/Source/ftpserv.c
 @@ -11,6 +11,8 @@
@@ -58,7 +58,7 @@ index ad27c08..1499acd 100644
  
  	rv = 1;
  	setsockopt(ftpsocket, SOL_SOCKET, SO_REUSEADDR, &rv, sizeof(rv));
-+	accept_timeout.tv_sec = 1;
++	accept_timeout.tv_sec = 10;
 +	accept_timeout.tv_usec = 0;
 +	setsockopt(ftpsocket, SOL_SOCKET, SO_RCVTIMEO, &accept_timeout, sizeof(accept_timeout));
  

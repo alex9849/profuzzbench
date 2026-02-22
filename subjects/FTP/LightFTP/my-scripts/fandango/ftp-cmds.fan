@@ -1,3 +1,5 @@
+from random import randint
+
 <start> ::= <banner_exchange> <unauthenticated_state>
 <banner_exchange> ::= <ServerControl:greeting_block>
 <greeting_block> ::= "220" <response_tail>
@@ -5,8 +7,10 @@
 # ---- STATE DEFINITIONS ----
 <unauthenticated_state> ::= <unauthenticated_exchanges>
 <unauthenticated_exchanges> ::= <AUTH_exchange><authenticated_state>
-<authenticated_state> ::= <authenticated_exchanges> <authenticated_state> | <QUIT_exchange>
-<authenticated_exchanges> ::= (<STOR_exchange> | <PROT_exchange> | <EPSV_exchange> | <AUTH_CMD_exchange> | <PBSZ_exchange> | <MLSD_exchange> | <OPTS_exchange> |  <FEAT_exchange> | <SIZE_exchange> | <RETR_exchange> | <REST_exchange> | <LIST_exchange> | <APPE_exchange> | <ABOR_exchange> | <TYPE_exchange> | <PASV_exchange> | <SITE_exchange> | <NOOP_exchange> | <SYST_exchange> | <PORT_exchange> | <HELP_exchange> | (<RNFR_exchange> <RNTO_exchange>) | <RMD_exchange> | <MKD_exchange> | <PWD_exchange> | <CWD_exchange> | <CDUP_exchange> | <DELE_exchange>)
+<authenticated_state> ::= (<control_exchanges> <authenticated_state>) | ((<PASV_exchange> | <EPSV_exchange>) <data_connected_state>) | <QUIT_exchange>
+<data_connected_state> ::= <control_exchanges> <data_connected_state> | <data_exchanges> <authenticated_state>
+<control_exchanges> ::= (<PROT_exchange> | <AUTH_CMD_exchange> | <PBSZ_exchange> | <OPTS_exchange> |  <FEAT_exchange> | <SIZE_exchange> | <REST_exchange> | <TYPE_exchange> | <SITE_exchange> | <NOOP_exchange> | <SYST_exchange> | <PORT_exchange> | <HELP_exchange> | (<RNFR_exchange> <RNTO_exchange>) | <RMD_exchange> | <MKD_exchange> | <PWD_exchange> | <CWD_exchange> | <CDUP_exchange> | <DELE_exchange>)
+<data_exchanges> ::= <STOR_exchange> | <ABOR_exchange> #  | <APPE_exchange> | <RETR_exchange> | MLSD_exchange
 
 # ---- EXCHANGES ----
 <AUTH_exchange> ::= <ClientControl:USER> <ServerControl:USER_response> <ClientControl:PASS> <ServerControl:PASS_response>
@@ -27,15 +31,15 @@
 <TYPE_exchange> ::= <ClientControl:TYPE> <ServerControl:TYPE_response>
 <PASV_exchange> ::= <ClientControl:PASV> <ServerControl:PASV_response>
 <ABOR_exchange> ::= <ClientControl:ABOR> <ServerControl:ABOR_response>
-<APPE_exchange> ::= <ClientControl:APPE> <ServerControl:Response_150> <ClientData:APPE_data>* <close_data> <ServerControl:Response_226>
+<APPE_exchange> ::= <ClientControl:APPE> <ServerControl:Response_150> <ClientData:APPE_data>* <StdOut:close_data> <ServerControl:Response_226>
 <LIST_exchange> ::= <ClientControl:LIST> <ServerControl:Response_150> <ServerData:LIST_data> <ServerControl:Response_226>
 <REST_exchange> ::= <ClientControl:REST> <ServerControl:REST_response>
-<RETR_exchange> ::= <ClientControl:RETR> <ServerControl:Response_150> <ServerData:file>? <close_data> <ServerControl:Response_226>
-<STOR_exchange> ::= <ClientControl:STOR> <ServerControl:Response_150> <ClientData:file>? <ServerControl:Response_226>
+<RETR_exchange> ::= <ClientControl:RETR> <ServerControl:Response_150> <ServerData:file>? <ServerControl:Response_226>
+<STOR_exchange> ::= <ClientControl:STOR> <ServerControl:Response_150> (<ClientData:file>* <StdOut:close_data>)? <ServerControl:Response_226>
 <FEAT_exchange> ::= <ClientControl:FEAT> <ServerControl:FEAT_response>
 <SIZE_exchange> ::= <ClientControl:SIZE> <ServerControl:SIZE_response>
 <OPTS_exchange> ::= <ClientControl:OPTS> <ServerControl:OPTS_response>
-<MLSD_exchange> ::= <ClientControl:MLSD> <ServerControl:MLSD_response>
+<MLSD_exchange> ::= <ClientControl:MLSD> <ServerControl:Response_150> <ServerData:file>? <ServerControl:MLSD_response>
 <AUTH_CMD_exchange> ::= <ClientControl:AUTH> <ServerControl:AUTH_response>
 <PBSZ_exchange> ::= <ClientControl:PBSZ> <ServerControl:PBSZ_response>
 <PROT_exchange> ::= <ClientControl:PROT> <ServerControl:PROT_response>
@@ -43,15 +47,18 @@
 
 <APPE_data> ::= r"[\s\S]*"
 <LIST_data> ::= r"[\s\S]*"
-<close_data> ::= "Closing data connection." <crlf> := close_data_connection()
+<close_data> ::= <close_data_inner>
+<close_data_inner> ::= "Closing data connection." <crlf> := close_data_connection()
 
 def close_data_connection():
     try:
         ClientData.instance().stop()
         ServerData.instance().stop()
     except KeyError:
+        pass
         # Party instances not created
-        return
+    print("close_data_connection")
+    return "Closing data connection.\r\n"
 
 
 # ---- CLIENT COMMANDS ----
@@ -145,7 +152,6 @@ where str(<SITE>.<text>) == "HELP"
 <TYPE_response> ::= <catch_all_response>
 <PASV_response> ::= '227'  (<space> <text>)? <space> "(" <pasv_socket> ")" <text>? <crlf>
 <ABOR_response> ::= <catch_all_response>
-<PASV_response> ::= <catch_all_response>
 <LIST_response> ::= <catch_all_response>
 <REST_response> ::= <catch_all_response>
 <RETR_response> ::= <catch_all_response>
@@ -177,15 +183,31 @@ where str(<SITE>.<text>) == "HELP"
 <crlf> ::= "\r\n"
 <ip_6_tuple> ::= <ip_number_1> "," <ip_number> "," <ip_number> "," <ip_number> "," <port_nr_1> "," <port_nr_2>
 <ip_number_1> ::= <ip_number>
-<ip_number> ::= <number>
-<port_nr_1> ::= <number>
-<port_nr_2> ::= <number>
+<ip_number> ::= r'[0-9]+' := str(randint(1, 1000))
+<port_nr_1> ::= r'[0-9]+' := str(randint(1, 1000))
+<port_nr_2> ::= r'[0-9]+' := str(randint(1, 1000))
 <dir_file> ::= (<directory> '/')? <file>
 <directory> ::= <filesystem_name> ("/" <directory>)?
 <file> ::= <filesystem_name> ('.' <filesystem_name>)?
 <filesystem_name> ::= r'[a-zA-Z0-9]+'
 <marker> ::= r"[a-zA-Z0-9\-\.]+"
 
+<mlsd_data> ::= (<mlsd_data_file>)+
+<mlsd_data_file> ::= <permissions> ' '+ <link_count> ' ' <user> ' '+ <group> ' '+ <file_size> ' ' <date> ' ' <file> '\r\n'
+<file_size>   ::= <number> := str(randint(0, 9999999))
+<link_count>  ::= <number>
+
+<permissions> ::= <file_type> <perm> <perm> <perm>
+<file_type>   ::= r'[-dlcb]'
+<perm>        ::= r'[r-]' r'[w-]' r'[x-]'
+<user>        ::= r'[0-9a-zA-Z_\-]+'
+<group>       ::= r'[0-9a-zA-Z_\-]+'
+<date>        ::= <month> ' ' <day> ' ' <time>
+<month>       ::= r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)'
+<day>         ::= r'[0-9]{2}' := "{:02d}".format(randint(1, 28))
+<time>        ::= <hour> ':' <minute>
+<hour>        ::= r'[0-9]{2}' := "{:02d}".format(randint(0, 23))
+<minute>      ::= r'[0-9]{2}' := "{:02d}".format(randint(0, 59))
 
 <open_port> ::= <passive_port> := open_data_port(int(<open_port_param>))
 <open_port_param> ::= <passive_port> := open_data_port(int(<open_port>))
@@ -205,23 +227,28 @@ where forall <port_req> in <PORT>:
     int(str(<port_req>..<port_nr_1>)) * 256 + int(str(<port_req>..<port_nr_2>)) > 1023
 
 def set_pasv_socket(pasv_socket) -> str:
-    ip = f"{pasv_socket[0]}.{pasv_socket[1]}.{pasv_socket[2]}.{pasv_socket[3]}"
-    port = (int(str(pasv_socket[4])) * 256) + int(str(pasv_socket[4]))
+    print("Here 1")
+    pasv_socket = pasv_socket[0]
+    ip = f"{pasv_socket[0]}.{pasv_socket[2]}.{pasv_socket[4]}.{pasv_socket[6]}"
+    port = (int(pasv_socket[8]) * 256) + int(pasv_socket[10])
     try:
+        print("Here 2")
         client_data = ClientData.instance()
         server_data = ServerData.instance()
+        print("Here 3")
     except KeyError:
         # Party instances not created
         return port
     client_data.stop()
-    if client_data.ip != ip:
-        client_data.ip = ip
+    #if client_data.ip != ip:
+    #    client_data.ip = ip
     if client_data.port != port:
         client_data.port = port
+        print("Set ClientData to port " + str(port))
     client_data.start()
 
-    if server_data.ip != ip:
-        server_data.ip = ip
+    #if server_data.ip != ip:
+    #    server_data.ip = ip
     if server_data.port != port:
         server_data.port = port
     return str(pasv_socket)

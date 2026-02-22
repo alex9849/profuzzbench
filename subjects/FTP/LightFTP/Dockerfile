@@ -21,6 +21,7 @@ RUN apt-get -y update && \
     gdb \
     netcat \
     strace \
+    ftp \
     wget
 
 RUN apt-get -y install python3.11 python3.11-dev
@@ -88,10 +89,10 @@ RUN cd $WORKDIR && \
 
 # Set up LightFTP for fuzzing
 RUN cd ${WORKDIR}/LightFTP/Source/Release && \
-    cp ${AFLNET}/tutorials/lightftp/fftp.conf ./ && \
     cp ${AFLNET}/tutorials/lightftp/ftpclean.sh ./ && \
     cp -r ${AFLNET}/tutorials/lightftp/certificate /home/ubuntu && \
     mkdir /home/ubuntu/ftpshare
+COPY --chown=ubuntu:ubuntu fftp.conf ${WORKDIR}/LightFTP/Source/Release/
 
 # Download and compile LightFTP for coverage analysis
 RUN cd $WORKDIR && \
@@ -113,12 +114,13 @@ RUN cd $WORKDIR && \
 
 # Set up LightFTP for fuzzing
 RUN cd ${WORKDIR}/LightFTP-gcov/Source/Release && \
-    cp ${AFLNET}/tutorials/lightftp/fftp.conf ./ && \
     cp ${AFLNET}/tutorials/lightftp/ftpclean.sh ./
+COPY --chown=ubuntu:ubuntu fftp.conf ${WORKDIR}/LightFTP-gcov/Source/Release/
 
 RUN cd ${WORKDIR}/LightFTP-fandango/Source/Release && \
     cp ${AFLNET}/tutorials/lightftp/fftp.conf ./ && \
     cp ${AFLNET}/tutorials/lightftp/ftpclean.sh ./
+COPY --chown=ubuntu:ubuntu fftp.conf ${WORKDIR}/LightFTP-fandango/Source/Release/
 
 
 COPY --chown=ubuntu:ubuntu in-ftp ${WORKDIR}/in-ftp
@@ -136,5 +138,4 @@ USER root
 RUN mkdir -p ${WORKDIR}/cov_out
 RUN chown -R ubuntu:ubuntu ${WORKDIR}/cov_out
 RUN chmod -R +rw ${WORKDIR}/cov_out
-RUN apt-get -y install ftp
 USER ubuntu

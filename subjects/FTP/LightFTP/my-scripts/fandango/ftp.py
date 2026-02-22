@@ -17,7 +17,7 @@ def main():
         fandango = Fandango(
             grammar=grammar,
             constraints=constraints,
-            logger_level=LoggerLevel.INFO
+            logger_level=LoggerLevel.DEBUG
         )
 
         try:

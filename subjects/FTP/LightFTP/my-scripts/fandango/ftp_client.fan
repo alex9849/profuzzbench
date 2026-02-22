@@ -33,6 +33,10 @@ class ClientData(NetworkParty):
             uri="tcp://127.0.0.1:50100"
         )
 
+    def start(self):
+        print("STARTING")
+        super().start()
+
     def receive(self, message: str | bytes, sender: Optional[str]) -> None:
         super().receive(message.decode("utf-8"), sender="ServerData")
 
