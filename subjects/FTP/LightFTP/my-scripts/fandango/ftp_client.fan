@@ -40,6 +40,8 @@ class ClientData(NetworkParty):
     def receive(self, message: str | bytes | None, sender: Optional[str]) -> None:
         if message is None:
             super().receive("999 Data socket closed.\r\n", sender="SocketControlServer")
+            print("SocketControlServer: 999 Data socket closed.\r\n")
+            self.stop()
         super().receive(message.decode("utf-8"), sender="ServerData")
 
 

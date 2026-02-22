@@ -50,7 +50,7 @@ from random import randint
 <FILE_data> ::= r"[\s\S]*"
 <MLSD_data> ::= r"[\s\S]*"
 <close_data> ::= <close_data_inner>
-<close_data_inner> ::= "999 Data socket closed." <crlf> := close_data_connection()
+<close_data_inner> ::= "999 Data socket closed." <crlf>
 
 where str(<APPE>.<file>) == "exist_append.txt"
 where str(<RETR>.<file>) == "exist_append.txt"
@@ -58,17 +58,6 @@ where str(<DELE>.<file>) != "exist_append.txt"
 where str(<RNFR>.<dir_file>) == "dir_1/dir_2/rn_1.txt" or str(<RNFR>.<dir_file>) == "dir_1/dir_2/rn_2.txt"
 where str(<RNTO>.<dir_file>) == "dir_1/dir_2/rn_1.txt" or str(<RNTO>.<dir_file>) == "dir_1/dir_2/rn_2.txt"
 where str(<MLSD>.<directory>) == "dir" or str(<MLSD>.<directory>) == "dir_1/dir_2"
-
-
-def close_data_connection():
-    try:
-        ClientData.instance().stop()
-        ServerData.instance().stop()
-    except KeyError:
-        pass
-        # Party instances not created
-    print("close_data_connection")
-    return "999 Data socket closed.\r\n"
 
 
 # ---- CLIENT COMMANDS ----
