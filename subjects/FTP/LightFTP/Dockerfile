@@ -26,6 +26,8 @@ RUN apt-get -y update && \
 
 RUN apt-get -y install python3.11 python3.11-dev
 
+RUN apt-get -y install ninja-build
+
 # Add a new user ubuntu, pass: ubuntu
 RUN groupadd ubuntu && \
     useradd -rm -d /home/ubuntu -s /bin/bash -g ubuntu -G sudo -u 1000 ubuntu -p "$(openssl passwd -1 ubuntu)"
@@ -35,7 +37,12 @@ RUN chmod 777 /tmp
 RUN python3 -m pip install --upgrade pip==20.3.4 && \
     pip3 install --trusted-host pypi.org --trusted-host files.pythonhosted.org gcovr==4.2
 
-RUN python3.11 -m pip install --pre packaging fandango-fuzzer==1.1.0rc1
+RUN python3.11 -m pip install -U pip setuptools wheel
+
+RUN git clone https://github.com/fandango-fuzzer/fandango.git && \
+    cd fandango && \
+    git checkout io_benchmark && \
+    python3.11 -m pip install --no-cache-dir -e ".[test]"
 
 # Use ubuntu as default username
 USER ubuntu
@@ -95,13 +102,13 @@ RUN cd ${WORKDIR}/LightFTP/Source/Release && \
 COPY --chown=ubuntu:ubuntu fftp.conf ${WORKDIR}/LightFTP/Source/Release/
 
 # Download and compile LightFTP for coverage analysis
-RUN cd $WORKDIR && \
-    git clone https://github.com/hfiref0x/LightFTP.git LightFTP-gcov && \
-    cd LightFTP-gcov && \
-    git checkout f067e56 && \
-    patch -p1 < ${WORKDIR}/gcov.patch && \
-    cd Source/Release && \
-    make CFLAGS="-fprofile-arcs -ftest-coverage" CPPFLAGS="-fprofile-arcs -ftest-coverage" CXXFLAGS="-fprofile-arcs -ftest-coverage" LDFLAGS="-fprofile-arcs -ftest-coverage" clean all $MAKE_OPT
+#RUN cd $WORKDIR && \
+#    git clone https://github.com/hfiref0x/LightFTP.git LightFTP-gcov && \
+#    cd LightFTP-gcov && \
+#    git checkout f067e56 && \
+#    patch -p1 < ${WORKDIR}/gcov.patch && \
+#    cd Source/Release && \
+#    make CFLAGS="-fprofile-arcs -ftest-coverage" CPPFLAGS="-fprofile-arcs -ftest-coverage" CXXFLAGS="-fprofile-arcs -ftest-coverage" LDFLAGS="-fprofile-arcs -ftest-coverage" clean all $MAKE_OPT
 
 RUN cd $WORKDIR && \
     git clone https://github.com/hfiref0x/LightFTP.git LightFTP-fandango && \
@@ -113,9 +120,9 @@ RUN cd $WORKDIR && \
 
 
 # Set up LightFTP for fuzzing
-RUN cd ${WORKDIR}/LightFTP-gcov/Source/Release && \
-    cp ${AFLNET}/tutorials/lightftp/ftpclean.sh ./
-COPY --chown=ubuntu:ubuntu fftp.conf ${WORKDIR}/LightFTP-gcov/Source/Release/
+#RUN cd ${WORKDIR}/LightFTP-gcov/Source/Release && \
+#    cp ${AFLNET}/tutorials/lightftp/ftpclean.sh ./
+#COPY --chown=ubuntu:ubuntu fftp.conf ${WORKDIR}/LightFTP-gcov/Source/Release/
 
 RUN cd ${WORKDIR}/LightFTP-fandango/Source/Release && \
     cp ${AFLNET}/tutorials/lightftp/fftp.conf ./ && \

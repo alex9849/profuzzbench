@@ -34,7 +34,7 @@ fi
 mkdir -p "${COV_OUT_DIR}"
 
 # Use gcov-instrumented build tree for execution + coverage.
-cd "${WORKDIR}/${TARGET_DIR}-gcov/Source/Release"
+cd "${WORKDIR}/${TARGET_DIR}-fandango/Source/Release"
 
 # Clear previous gcov data (directory is Source/Release; sources are in parent "..")
 gcovr -r .. -s -d > /dev/null 2>&1 || true
@@ -77,6 +77,7 @@ rm -f $SEED_FILES/*_converted.raw
 # Generate HTML coverage report for only the file(s) matching GCOVR_FILTER.
 # --filter limits which source files appear in the report.
 gcovr -r .. \
+  --root ../ \
   --html --html-details \
   -o "${COV_OUT_DIR}index.html"
 

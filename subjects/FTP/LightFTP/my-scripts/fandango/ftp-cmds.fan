@@ -30,12 +30,12 @@ from random import randint
 <SITE_exchange> ::= <ClientControl:SITE> <ServerControl:SITE_response>
 <TYPE_exchange> ::= <ClientControl:TYPE> <ServerControl:TYPE_response>
 <PASV_exchange> ::= <ClientControl:PASV> <ServerControl:PASV_response>
-<ABOR_exchange> ::= <ClientControl:ABOR> (<ServerControl:ABOR_response> <SocketControlServer:close_data> | <SocketControlServer:close_data> <ServerControl:ABOR_response>)
+<ABOR_exchange> ::= <ClientControl:ABOR> (<ServerControl:ABOR_response> <SocketControlClient:close_data> | <SocketControlClient:close_data> <ServerControl:ABOR_response>)
 <APPE_exchange> ::= <ClientControl:APPE> <ServerControl:Response_150> (<ClientData:APPE_data>* <SocketControlClient:close_data>)? <ServerControl:Response_226>
 <LIST_exchange> ::= <ClientControl:LIST> <ServerControl:Response_150> <ServerData:LIST_data>* (<SocketControlServer:close_data> <ServerControl:Response_226> | <ServerControl:Response_226> <ServerData:LIST_data>* <SocketControlServer:close_data>)
 <REST_exchange> ::= <ClientControl:REST> <ServerControl:REST_response>
-<RETR_exchange> ::= <ClientControl:RETR> <ServerControl:Response_150> <ServerData:FILE_data>* (<SocketControlServer:close_data> <ServerControl:Response_226> | <ServerControl:Response_226> <ServerData:FILE_data>* <SocketControlServer:close_data>)
-<STOR_exchange> ::= <ClientControl:STOR> <ServerControl:Response_150> (<ClientData:FILE_data>* <SocketControlClient:close_data>)? <ServerControl:Response_226>
+<RETR_exchange> ::= <ClientControl:RETR> <ServerControl:Response_150> <ServerData:RETR_data>* (<SocketControlServer:close_data> <ServerControl:Response_226> | <ServerControl:Response_226> <ServerData:RETR_data>* <SocketControlServer:close_data>)
+<STOR_exchange> ::= <ClientControl:STOR> <ServerControl:Response_150> (<ClientData:STOR_data>* <SocketControlClient:close_data>)? <ServerControl:Response_226>
 <FEAT_exchange> ::= <ClientControl:FEAT> <ServerControl:FEAT_response>
 <SIZE_exchange> ::= <ClientControl:SIZE> <ServerControl:SIZE_response>
 <OPTS_exchange> ::= <ClientControl:OPTS> <ServerControl:OPTS_response>
@@ -47,7 +47,8 @@ from random import randint
 
 <APPE_data> ::= r"[\s\S]*"
 <LIST_data> ::= r"[\s\S]*"
-<FILE_data> ::= r"[\s\S]*"
+<RETR_data> ::= r"[\s\S]*"
+<STOR_data> ::= r"[\s\S]*"
 <MLSD_data> ::= r"[\s\S]*"
 <close_data> ::= <close_data_inner>
 <close_data_inner> ::= "999 Data socket closed." <crlf>

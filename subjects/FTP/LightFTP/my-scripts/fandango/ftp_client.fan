@@ -41,7 +41,7 @@ class ClientData(NetworkParty):
         if message is None:
             super().receive("999 Data socket closed.\r\n", sender="SocketControlServer")
             print("SocketControlServer: 999 Data socket closed.\r\n")
-            self.stop()
+            return
         super().receive(message.decode("utf-8"), sender="ServerData")
 
 
