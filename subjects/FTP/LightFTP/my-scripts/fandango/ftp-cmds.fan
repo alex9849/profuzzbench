@@ -9,8 +9,8 @@ from random import randint
 <unauthenticated_exchanges> ::= <AUTH_exchange><authenticated_state>
 <authenticated_state> ::= (<control_exchanges> <authenticated_state>) | ((<PASV_exchange> | <EPSV_exchange>) <data_connected_state>) | <QUIT_exchange>
 <data_connected_state> ::= <control_exchanges> <data_connected_state> | <data_exchanges> <authenticated_state>
-<control_exchanges> ::= (<PROT_exchange> | <AUTH_CMD_exchange> | <PBSZ_exchange> | <OPTS_exchange> |  <FEAT_exchange> | <SIZE_exchange> | <REST_exchange> | <TYPE_exchange> | <SITE_exchange> | <NOOP_exchange> | <SYST_exchange> | <PORT_exchange> | <HELP_exchange> | (<RNFR_exchange> <RNTO_exchange>) | <RMD_exchange> | <MKD_exchange> | <PWD_exchange> | <CWD_exchange> | <CDUP_exchange> | <DELE_exchange>)
-<data_exchanges> ::= <STOR_exchange> | <ABOR_exchange> #  | <APPE_exchange> | <RETR_exchange> | MLSD_exchange
+<control_exchanges> ::= (<PROT_exchange> | <AUTH_CMD_exchange> | <PBSZ_exchange> | <OPTS_exchange> |  <FEAT_exchange> | <SIZE_exchange> | <REST_exchange> | <TYPE_exchange> | <SITE_exchange> | <NOOP_exchange> | <SYST_exchange> | <PORT_exchange> | <HELP_exchange> | (<RNFR_exchange> <RNTO_exchange>?) | <RMD_exchange> | <MKD_exchange> | <PWD_exchange> | <CWD_exchange> | <CDUP_exchange> | <DELE_exchange>)
+<data_exchanges> ::= <STOR_exchange> | <ABOR_exchange> | <APPE_exchange> | <RETR_exchange> | <MLSD_exchange>
 
 # ---- EXCHANGES ----
 <AUTH_exchange> ::= <ClientControl:USER> <ServerControl:USER_response> <ClientControl:PASS> <ServerControl:PASS_response>
@@ -30,16 +30,16 @@ from random import randint
 <SITE_exchange> ::= <ClientControl:SITE> <ServerControl:SITE_response>
 <TYPE_exchange> ::= <ClientControl:TYPE> <ServerControl:TYPE_response>
 <PASV_exchange> ::= <ClientControl:PASV> <ServerControl:PASV_response>
-<ABOR_exchange> ::= <ClientControl:ABOR> <ServerControl:ABOR_response>
-<APPE_exchange> ::= <ClientControl:APPE> <ServerControl:Response_150> <ClientData:APPE_data>* <StdOut:close_data> <ServerControl:Response_226>
-<LIST_exchange> ::= <ClientControl:LIST> <ServerControl:Response_150> <ServerData:LIST_data> <ServerControl:Response_226>
+<ABOR_exchange> ::= <ClientControl:ABOR> (<ServerControl:ABOR_response> <SocketControlServer:close_data> | <SocketControlServer:close_data> <ServerControl:ABOR_response>)
+<APPE_exchange> ::= <ClientControl:APPE> <ServerControl:Response_150> (<ClientData:APPE_data>* <SocketControlClient:close_data>)? <ServerControl:Response_226>
+<LIST_exchange> ::= <ClientControl:LIST> <ServerControl:Response_150> <ServerData:LIST_data>* (<SocketControlServer:close_data> <ServerControl:Response_226> | <ServerControl:Response_226> <ServerData:LIST_data>* <SocketControlServer:close_data>)
 <REST_exchange> ::= <ClientControl:REST> <ServerControl:REST_response>
-<RETR_exchange> ::= <ClientControl:RETR> <ServerControl:Response_150> <ServerData:file>? <ServerControl:Response_226>
-<STOR_exchange> ::= <ClientControl:STOR> <ServerControl:Response_150> (<ClientData:file>* <StdOut:close_data>)? <ServerControl:Response_226>
+<RETR_exchange> ::= <ClientControl:RETR> <ServerControl:Response_150> <ServerData:FILE_data>* (<SocketControlServer:close_data> <ServerControl:Response_226> | <ServerControl:Response_226> <ServerData:FILE_data>* <SocketControlServer:close_data>)
+<STOR_exchange> ::= <ClientControl:STOR> <ServerControl:Response_150> (<ClientData:FILE_data>* <SocketControlClient:close_data>)? <ServerControl:Response_226>
 <FEAT_exchange> ::= <ClientControl:FEAT> <ServerControl:FEAT_response>
 <SIZE_exchange> ::= <ClientControl:SIZE> <ServerControl:SIZE_response>
 <OPTS_exchange> ::= <ClientControl:OPTS> <ServerControl:OPTS_response>
-<MLSD_exchange> ::= <ClientControl:MLSD> <ServerControl:Response_150> <ServerData:file>? <ServerControl:MLSD_response>
+<MLSD_exchange> ::= <ClientControl:MLSD> <ServerControl:Response_150> <ServerData:MLSD_data>* (<SocketControlServer:close_data> <ServerControl:Response_226> | <ServerControl:Response_226> <SocketControlServer:close_data>)
 <AUTH_CMD_exchange> ::= <ClientControl:AUTH> <ServerControl:AUTH_response>
 <PBSZ_exchange> ::= <ClientControl:PBSZ> <ServerControl:PBSZ_response>
 <PROT_exchange> ::= <ClientControl:PROT> <ServerControl:PROT_response>
@@ -47,8 +47,18 @@ from random import randint
 
 <APPE_data> ::= r"[\s\S]*"
 <LIST_data> ::= r"[\s\S]*"
+<FILE_data> ::= r"[\s\S]*"
+<MLSD_data> ::= r"[\s\S]*"
 <close_data> ::= <close_data_inner>
-<close_data_inner> ::= "Closing data connection." <crlf> := close_data_connection()
+<close_data_inner> ::= "999 Data socket closed." <crlf> := close_data_connection()
+
+where str(<APPE>.<file>) == "exist_append.txt"
+where str(<RETR>.<file>) == "exist_append.txt"
+where str(<DELE>.<file>) != "exist_append.txt"
+where str(<RNFR>.<dir_file>) == "dir_1/dir_2/rn_1.txt" or str(<RNFR>.<dir_file>) == "dir_1/dir_2/rn_2.txt"
+where str(<RNTO>.<dir_file>) == "dir_1/dir_2/rn_1.txt" or str(<RNTO>.<dir_file>) == "dir_1/dir_2/rn_2.txt"
+where str(<MLSD>.<directory>) == "dir" or str(<MLSD>.<directory>) == "dir_1/dir_2"
+
 
 def close_data_connection():
     try:
@@ -58,7 +68,7 @@ def close_data_connection():
         pass
         # Party instances not created
     print("close_data_connection")
-    return "Closing data connection.\r\n"
+    return "999 Data socket closed.\r\n"
 
 
 # ---- CLIENT COMMANDS ----
@@ -84,8 +94,8 @@ def close_data_connection():
 <APPE> ::= "APPE" <space> <file> <crlf> # File might not exist
 <LIST> ::= "LIST" (<space> <directory>)? <crlf> # Dir might not exist
 <REST> ::= "REST" <space> <marker> <crlf>
-<RETR> ::= "RETR" <space> <file> <crlf> # File might not exist
-<STOR> ::= "STOR" <space> <file> <crlf> # Terminates with error 451? Error in local processing
+<RETR> ::= "RETR" <space> <file> <crlf>
+<STOR> ::= "STOR" <space> <file> <crlf>
 
 <FEAT> ::= "FEAT" <crlf>
 <SIZE> ::= "SIZE" <space> <dir_file> <crlf>
@@ -159,7 +169,6 @@ where str(<SITE>.<text>) == "HELP"
 <FEAT_response> ::= <catch_all_response>
 <SIZE_response> ::= <catch_all_response>
 <OPTS_response> ::= <catch_all_response>
-<MLSD_response> ::= <catch_all_response>
 <AUTH_response> ::= <catch_all_response>
 <PBSZ_response> ::= <catch_all_response>
 <PROT_response> ::= <catch_all_response>
@@ -183,31 +192,14 @@ where str(<SITE>.<text>) == "HELP"
 <crlf> ::= "\r\n"
 <ip_6_tuple> ::= <ip_number_1> "," <ip_number> "," <ip_number> "," <ip_number> "," <port_nr_1> "," <port_nr_2>
 <ip_number_1> ::= <ip_number>
-<ip_number> ::= r'[0-9]+' := str(randint(1, 1000))
-<port_nr_1> ::= r'[0-9]+' := str(randint(1, 1000))
-<port_nr_2> ::= r'[0-9]+' := str(randint(1, 1000))
+<ip_number> ::= r'[0-9]+' := str(randint(0, 254))
+<port_nr_1> ::= r'[0-9]+' := str(randint(1, 255))
+<port_nr_2> ::= r'[0-9]+' := str(randint(1, 255))
 <dir_file> ::= (<directory> '/')? <file>
-<directory> ::= <filesystem_name> ("/" <directory>)?
+<directory> ::= <filesystem_name> ("/" <filesystem_name>)*
 <file> ::= <filesystem_name> ('.' <filesystem_name>)?
-<filesystem_name> ::= r'[a-zA-Z0-9]+'
+<filesystem_name> ::= r'[a-zA-Z0-9\_]+'
 <marker> ::= r"[a-zA-Z0-9\-\.]+"
-
-<mlsd_data> ::= (<mlsd_data_file>)+
-<mlsd_data_file> ::= <permissions> ' '+ <link_count> ' ' <user> ' '+ <group> ' '+ <file_size> ' ' <date> ' ' <file> '\r\n'
-<file_size>   ::= <number> := str(randint(0, 9999999))
-<link_count>  ::= <number>
-
-<permissions> ::= <file_type> <perm> <perm> <perm>
-<file_type>   ::= r'[-dlcb]'
-<perm>        ::= r'[r-]' r'[w-]' r'[x-]'
-<user>        ::= r'[0-9a-zA-Z_\-]+'
-<group>       ::= r'[0-9a-zA-Z_\-]+'
-<date>        ::= <month> ' ' <day> ' ' <time>
-<month>       ::= r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)'
-<day>         ::= r'[0-9]{2}' := "{:02d}".format(randint(1, 28))
-<time>        ::= <hour> ':' <minute>
-<hour>        ::= r'[0-9]{2}' := "{:02d}".format(randint(0, 23))
-<minute>      ::= r'[0-9]{2}' := "{:02d}".format(randint(0, 59))
 
 <open_port> ::= <passive_port> := open_data_port(int(<open_port_param>))
 <open_port_param> ::= <passive_port> := open_data_port(int(<open_port>))
@@ -215,7 +207,7 @@ where str(<SITE>.<text>) == "HELP"
 
 
 # Not part of RFC. We set the correct user and password per constraint
-where str(<USER>.<word>) == "ubuntu"
+where str(<USER>.<word>) == "webadmin"
 where str(<PASS>.<text>) == "ubuntu"
 
 where int(str(<PORT>..<ip_number>)) < 256
@@ -227,15 +219,12 @@ where forall <port_req> in <PORT>:
     int(str(<port_req>..<port_nr_1>)) * 256 + int(str(<port_req>..<port_nr_2>)) > 1023
 
 def set_pasv_socket(pasv_socket) -> str:
-    print("Here 1")
     pasv_socket = pasv_socket[0]
     ip = f"{pasv_socket[0]}.{pasv_socket[2]}.{pasv_socket[4]}.{pasv_socket[6]}"
     port = (int(pasv_socket[8]) * 256) + int(pasv_socket[10])
     try:
-        print("Here 2")
         client_data = ClientData.instance()
         server_data = ServerData.instance()
-        print("Here 3")
     except KeyError:
         # Party instances not created
         return port
@@ -244,7 +233,6 @@ def set_pasv_socket(pasv_socket) -> str:
     #    client_data.ip = ip
     if client_data.port != port:
         client_data.port = port
-        print("Set ClientData to port " + str(port))
     client_data.start()
 
     #if server_data.ip != ip:

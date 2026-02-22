@@ -37,7 +37,9 @@ class ClientData(NetworkParty):
         print("STARTING")
         super().start()
 
-    def receive(self, message: str | bytes, sender: Optional[str]) -> None:
+    def receive(self, message: str | bytes | None, sender: Optional[str]) -> None:
+        if message is None:
+            super().receive("999 Data socket closed.\r\n", sender="SocketControlServer")
         super().receive(message.decode("utf-8"), sender="ServerData")
 
 
@@ -47,3 +49,33 @@ class ServerData(NetworkParty):
             connection_mode=ConnectionMode.EXTERNAL,
             uri="tcp://127.0.0.1:50100"
         )
+
+class SocketControlServer(FandangoParty):
+    def __init__(self):
+        super().__init__(
+            connection_mode=ConnectionMode.EXTERNAL
+        )
+
+    def start(self):
+        pass
+
+    def stop(self):
+        pass
+
+class SocketControlClient(FandangoParty):
+    def __init__(self):
+        super().__init__(
+            connection_mode=ConnectionMode.CONNECT
+        )
+
+    def send(self, message: str | bytes, recipient: Optional[str]) -> None:
+        ClientData.instance().stop()
+        ServerData.instance().stop()
+        print(str(message))
+
+    def start(self):
+        pass
+
+    def stop(self):
+        pass
+

@@ -131,6 +131,10 @@ COPY --chown=ubuntu:ubuntu clean.sh ${WORKDIR}/ftpclean
 COPY --chown=ubuntu:ubuntu my-scripts/exec-seeds.sh ${WORKDIR}
 COPY --chown=ubuntu:ubuntu my-scripts/convert-to-replay.py ${WORKDIR}
 COPY --chown=ubuntu:ubuntu my-scripts/fandango/ ${WORKDIR}/fandango
+RUN echo "I'm a file" > /home/ubuntu/ftpshare/exist_append.txt
+RUN mkdir -p /home/ubuntu/ftpshare/dir_1/dir_2
+RUN echo "I'm a file" > /home/ubuntu/ftpshare/dir_1/dir_2/rn_1.txt
+
 
 
 # For debugging purposes
