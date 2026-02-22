@@ -10,7 +10,7 @@ from random import randint
 <authenticated_state> ::= (<control_exchanges> <authenticated_state>) | ((<PASV_exchange> | <EPSV_exchange>) <data_connected_state>) | <QUIT_exchange>
 <data_connected_state> ::= <control_exchanges> <data_connected_state> | <data_exchanges> <authenticated_state>
 <control_exchanges> ::= (<PROT_exchange> | <AUTH_CMD_exchange> | <PBSZ_exchange> | <OPTS_exchange> |  <FEAT_exchange> | <SIZE_exchange> | <REST_exchange> | <TYPE_exchange> | <SITE_exchange> | <NOOP_exchange> | <SYST_exchange> | <PORT_exchange> | <HELP_exchange> | (<RNFR_exchange> <RNTO_exchange>?) | <RMD_exchange> | <MKD_exchange> | <PWD_exchange> | <CWD_exchange> | <CDUP_exchange> | <DELE_exchange>)
-<data_exchanges> ::= <STOR_exchange> | <ABOR_exchange> | <APPE_exchange> | <RETR_exchange> | <MLSD_exchange>
+<data_exchanges> ::= <STOR_exchange> | <LIST_exchange> | <ABOR_exchange> | <APPE_exchange> | <RETR_exchange> | <MLSD_exchange>
 
 # ---- EXCHANGES ----
 <AUTH_exchange> ::= <ClientControl:USER> <ServerControl:USER_response> <ClientControl:PASS> <ServerControl:PASS_response>
