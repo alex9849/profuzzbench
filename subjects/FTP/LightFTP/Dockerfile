@@ -79,8 +79,7 @@ ENV AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=1 \
 RUN mkdir $WORKDIR
 
 COPY --chown=ubuntu:ubuntu fuzzing.patch ${WORKDIR}/fuzzing.patch
-COPY --chown=ubuntu:ubuntu gcov.patch ${WORKDIR}/gcov.patch
-COPY --chown=ubuntu:ubuntu gcov-fandango.patch ${WORKDIR}/gcov-fandango.patch
+COPY --chown=ubuntu:ubuntu gcov-fandango.patch ${WORKDIR}/gcov.patch
 
 # Set up environment variables for ASAN
 ENV ASAN_OPTIONS='abort_on_error=1:symbolize=0:detect_leaks=0:detect_stack_use_after_return=1:detect_container_overflow=0:poison_array_cookie=0:malloc_fill_byte=0:max_malloc_fill_size=16777216'
@@ -102,32 +101,18 @@ RUN cd ${WORKDIR}/LightFTP/Source/Release && \
 COPY --chown=ubuntu:ubuntu fftp.conf ${WORKDIR}/LightFTP/Source/Release/
 
 # Download and compile LightFTP for coverage analysis
-#RUN cd $WORKDIR && \
-#    git clone https://github.com/hfiref0x/LightFTP.git LightFTP-gcov && \
-#    cd LightFTP-gcov && \
-#    git checkout f067e56 && \
-#    patch -p1 < ${WORKDIR}/gcov.patch && \
-#    cd Source/Release && \
-#    make CFLAGS="-fprofile-arcs -ftest-coverage" CPPFLAGS="-fprofile-arcs -ftest-coverage" CXXFLAGS="-fprofile-arcs -ftest-coverage" LDFLAGS="-fprofile-arcs -ftest-coverage" clean all $MAKE_OPT
-
 RUN cd $WORKDIR && \
-    git clone https://github.com/hfiref0x/LightFTP.git LightFTP-fandango && \
-    cd LightFTP-fandango && \
+    git clone https://github.com/hfiref0x/LightFTP.git LightFTP-gcov && \
+    cd LightFTP-gcov && \
     git checkout f067e56 && \
-    patch -p1 < ${WORKDIR}/gcov-fandango.patch && \
+    patch -p1 < ${WORKDIR}/gcov.patch && \
     cd Source/Release && \
-    make CFLAGS="-fprofile-arcs -ftest-coverage" CPPFLAGS="-fprofile-arcs -ftest-coverage" CXXFLAGS="-fprofile-arcs -ftest-coverage" LDFLAGS="-fprofile-arcs -ftest-coverage" clean all $MAKE_OPT
-
+    make CC=gcc CXX=g++ CFLAGS="-fprofile-arcs -ftest-coverage" CPPFLAGS="-fprofile-arcs -ftest-coverage" CXXFLAGS="-fprofile-arcs -ftest-coverage" LDFLAGS="-fprofile-arcs -ftest-coverage" clean all $MAKE_OPT
 
 # Set up LightFTP for fuzzing
-#RUN cd ${WORKDIR}/LightFTP-gcov/Source/Release && \
-#    cp ${AFLNET}/tutorials/lightftp/ftpclean.sh ./
-#COPY --chown=ubuntu:ubuntu fftp.conf ${WORKDIR}/LightFTP-gcov/Source/Release/
-
-RUN cd ${WORKDIR}/LightFTP-fandango/Source/Release && \
+RUN cd ${WORKDIR}/LightFTP-gcov/Source/Release && \
     cp ${AFLNET}/tutorials/lightftp/fftp.conf ./ && \
     cp ${AFLNET}/tutorials/lightftp/ftpclean.sh ./
-COPY --chown=ubuntu:ubuntu fftp.conf ${WORKDIR}/LightFTP-fandango/Source/Release/
 
 
 COPY --chown=ubuntu:ubuntu in-ftp ${WORKDIR}/in-ftp
