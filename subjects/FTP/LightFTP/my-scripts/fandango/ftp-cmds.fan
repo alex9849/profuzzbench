@@ -56,6 +56,7 @@ from random import randint
 where str(<APPE>.<file>) == "exist_append.txt"
 where str(<RETR>.<file>) == "exist_append.txt"
 where str(<DELE>.<file>) != "exist_append.txt"
+where str(<LIST>.<directory>) == "dir" or str(<LIST>.<directory>) == "dir_1/dir_2"
 where str(<RNFR>.<dir_file>) == "dir_1/dir_2/rn_1.txt" or str(<RNFR>.<dir_file>) == "dir_1/dir_2/rn_2.txt"
 where str(<RNTO>.<dir_file>) == "dir_1/dir_2/rn_1.txt" or str(<RNTO>.<dir_file>) == "dir_1/dir_2/rn_2.txt"
 where str(<MLSD>.<directory>) == "dir" or str(<MLSD>.<directory>) == "dir_1/dir_2"
