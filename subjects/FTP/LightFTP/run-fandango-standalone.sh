@@ -1,19 +1,10 @@
 #!/bin/sh
 
 
-# Create cov_out directory and make it writable for everyone to avoid permission issues in docker
-# Use -f to ignore errors if it's already there and owned by someone else,
-# but if we can't chmod it, we might have issues.
-# Better yet, try to remove it if it's empty or just ignore the error if it already has right permissions.
-# mkdir -p ./cov_out || true
-# chmod 777 ./cov_out || true
+docker build . -f Dockerfile-fandango -t lightftp-fandango
 
 docker run --rm -it \
-  -v ./cov_out/:/home/ubuntu/experiments/cov_out/ \
+  -v ./results-fandango/11/:/home/ubuntu/experiments/cov_out/ \
   -e COV_OUT_DIR=/home/ubuntu/experiments/cov_out/ \
-  lightftp-fan-seeds:latest \
+  lightftp-fandango:latest \
   experiments/fandango/run_fandango.sh
-
-
-
-#  -e GCOVR_FILTER='.*Source/Release/SomeFile\.c$' \

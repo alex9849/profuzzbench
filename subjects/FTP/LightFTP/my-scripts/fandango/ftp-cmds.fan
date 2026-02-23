@@ -6,7 +6,8 @@ from random import randint
 
 # ---- STATE DEFINITIONS ----
 <unauthenticated_state> ::= <unauthenticated_exchanges>
-<unauthenticated_exchanges> ::= <AUTH_exchange><authenticated_state> #| <AUTH_TLS_upgrade> <unauthenticated_state>
+<unauthenticated_exchanges> ::= <AUTH_exchange><authenticated_state> | <AUTH_TLS_upgrade> <unauthenticated_tls_state>
+<unauthenticated_tls_state> ::= <AUTH_exchange><authenticated_state>
 <authenticated_state> ::= (<control_exchanges> <authenticated_state>) | ((<PASV_exchange> | <EPSV_exchange>) <data_connected_state>) | <QUIT_exchange>
 <data_connected_state> ::= <control_exchanges> <data_connected_state> | <data_exchanges> <authenticated_state>
 <control_exchanges> ::= (<PROT_exchange> | <PBSZ_exchange> | <OPTS_exchange> |  <FEAT_exchange> | <SIZE_exchange> | <REST_exchange> | <TYPE_exchange> | <SITE_exchange> | <NOOP_exchange> | <SYST_exchange> | <PORT_exchange> | <HELP_exchange> | (<RNFR_exchange> <RNTO_exchange>?) | <RMD_exchange> | <MKD_exchange> | <PWD_exchange> | <CWD_exchange> | <CDUP_exchange> | <DELE_exchange>)
@@ -39,8 +40,8 @@ from random import randint
 <FEAT_exchange> ::= <ClientControl:FEAT> <ServerControl:FEAT_response>
 <SIZE_exchange> ::= <ClientControl:SIZE> <ServerControl:SIZE_response>
 <OPTS_exchange> ::= <ClientControl:OPTS> <ServerControl:OPTS_response>
-<MLSD_exchange> ::= <ClientControl:MLSD> <ServerControl:Response_150> <ServerData:MLSD_data>* (<SocketControlServer:close_data> <ServerControl:Response_226> | <ServerControl:Response_226> <SocketControlServer:close_data>)
-<AUTH_TLS_upgrade> ::= <ClientControl:AUTH_TLS> <ServerControl:AUTH_TLS_response>
+<MLSD_exchange> ::= <ClientControl:MLSD> <ServerControl:Response_150> <ServerData:MLSD_data>* (<SocketControlServer:close_data> <ServerControl:Response_226> | <ServerControl:Response_226> <ServerData:MLSD_data>* <SocketControlServer:close_data>)
+<AUTH_TLS_upgrade> ::= <ClientControl:AUTH_TLS> <ServerControl:AUTH_TLS_response> <SocketControlClient:AUTH_TLS_negotiate>
 <PBSZ_exchange> ::= <ClientControl:PBSZ> <ServerControl:PBSZ_response>
 <PROT_exchange> ::= <ClientControl:PROT> <ServerControl:PROT_response>
 <EPSV_exchange> ::= <ClientControl:EPSV> <ServerControl:EPSV_response>
@@ -52,6 +53,7 @@ from random import randint
 <MLSD_data> ::= r"[\s\S]*"
 <close_data> ::= <close_data_inner>
 <close_data_inner> ::= "999 Data socket closed." <crlf>
+<AUTH_TLS_negotiate> ::= "998 TLS upgrade." <crlf>
 
 where str(<APPE>.<file>) == "exist_append.txt"
 where str(<RETR>.<file>) == "exist_append.txt"
@@ -94,7 +96,7 @@ where str(<MLSD>.<directory>) == "dir" or str(<MLSD>.<directory>) == "dir_1/dir_
 <MLSD> ::= "MLSD" (<space> <directory>)? <crlf>
 <AUTH_TLS> ::= "AUTH" <space> "TLS" <crlf>
 <PBSZ> ::= "PBSZ" <space> <number> <crlf>
-<PROT> ::= "PROT" <space> ("C" | "S" | "E" | "P") <crlf>
+<PROT> ::= "PROT" <space> ("C" | "P") <crlf>
 <EPSV> ::= "EPSV" <crlf>
 
 # Implementation specific command. This one works with lightFTP
@@ -127,7 +129,9 @@ where str(<SITE>.<text>) == "HELP"
 <SIZE_response> ::= <catch_all_response>
 <OPTS_response> ::= <catch_all_response>
 <AUTH_response> ::= <catch_all_response>
-<AUTH_TLS_response> ::= <catch_all_response>
+<AUTH_TLS_response> ::= "234" <response_tail>
+<MLSD_response> ::= <catch_all_response>
+
 <PBSZ_response> ::= <catch_all_response>
 <PROT_response> ::= <catch_all_response>
 <EPSV_response> ::= '229 Entering Extended Passive Mode (|||' <open_port> '|)\r\n'
