@@ -6,10 +6,10 @@ from random import randint
 
 # ---- STATE DEFINITIONS ----
 <unauthenticated_state> ::= <unauthenticated_exchanges>
-<unauthenticated_exchanges> ::= <AUTH_exchange><authenticated_state>
+<unauthenticated_exchanges> ::= <AUTH_exchange><authenticated_state> #| <AUTH_TLS_upgrade> <unauthenticated_state>
 <authenticated_state> ::= (<control_exchanges> <authenticated_state>) | ((<PASV_exchange> | <EPSV_exchange>) <data_connected_state>) | <QUIT_exchange>
 <data_connected_state> ::= <control_exchanges> <data_connected_state> | <data_exchanges> <authenticated_state>
-<control_exchanges> ::= (<PROT_exchange> | <AUTH_CMD_exchange> | <PBSZ_exchange> | <OPTS_exchange> |  <FEAT_exchange> | <SIZE_exchange> | <REST_exchange> | <TYPE_exchange> | <SITE_exchange> | <NOOP_exchange> | <SYST_exchange> | <PORT_exchange> | <HELP_exchange> | (<RNFR_exchange> <RNTO_exchange>?) | <RMD_exchange> | <MKD_exchange> | <PWD_exchange> | <CWD_exchange> | <CDUP_exchange> | <DELE_exchange>)
+<control_exchanges> ::= (<PROT_exchange> | <PBSZ_exchange> | <OPTS_exchange> |  <FEAT_exchange> | <SIZE_exchange> | <REST_exchange> | <TYPE_exchange> | <SITE_exchange> | <NOOP_exchange> | <SYST_exchange> | <PORT_exchange> | <HELP_exchange> | (<RNFR_exchange> <RNTO_exchange>?) | <RMD_exchange> | <MKD_exchange> | <PWD_exchange> | <CWD_exchange> | <CDUP_exchange> | <DELE_exchange>)
 <data_exchanges> ::= <STOR_exchange> | <LIST_exchange> | <ABOR_exchange> | <APPE_exchange> | <RETR_exchange> | <MLSD_exchange>
 
 # ---- EXCHANGES ----
@@ -40,7 +40,7 @@ from random import randint
 <SIZE_exchange> ::= <ClientControl:SIZE> <ServerControl:SIZE_response>
 <OPTS_exchange> ::= <ClientControl:OPTS> <ServerControl:OPTS_response>
 <MLSD_exchange> ::= <ClientControl:MLSD> <ServerControl:Response_150> <ServerData:MLSD_data>* (<SocketControlServer:close_data> <ServerControl:Response_226> | <ServerControl:Response_226> <SocketControlServer:close_data>)
-<AUTH_CMD_exchange> ::= <ClientControl:AUTH> <ServerControl:AUTH_response>
+<AUTH_TLS_upgrade> ::= <ClientControl:AUTH_TLS> <ServerControl:AUTH_TLS_response>
 <PBSZ_exchange> ::= <ClientControl:PBSZ> <ServerControl:PBSZ_response>
 <PROT_exchange> ::= <ClientControl:PROT> <ServerControl:PROT_response>
 <EPSV_exchange> ::= <ClientControl:EPSV> <ServerControl:EPSV_response>
@@ -92,47 +92,13 @@ where str(<MLSD>.<directory>) == "dir" or str(<MLSD>.<directory>) == "dir_1/dir_
 <SIZE> ::= "SIZE" <space> <dir_file> <crlf>
 <OPTS> ::= "OPTS" <space> <text> <crlf>
 <MLSD> ::= "MLSD" (<space> <directory>)? <crlf>
-<AUTH> ::= "AUTH" <space> <text> <crlf>
+<AUTH_TLS> ::= "AUTH" <space> "TLS" <crlf>
 <PBSZ> ::= "PBSZ" <space> <number> <crlf>
 <PROT> ::= "PROT" <space> ("C" | "S" | "E" | "P") <crlf>
 <EPSV> ::= "EPSV" <crlf>
 
 # Implementation specific command. This one works with lightFTP
 where str(<SITE>.<text>) == "HELP"
-
-# ---- SERVER COMMAND RESPONSES ----
-# <QUIT_response> ::= "221" <response_tail>
-# <USER_response> ::= "331" <response_tail>
-# <PASS_response> ::= "230" <response_tail>
-# <PORT_response> ::= "200" <response_tail>
-# <DELE_response> ::= "250" <response_tail>
-# <RNFR_response> ::= "350" <response_tail>
-# <RNTO_response> ::= "250" <response_tail>
-# <CWD_response> ::= "250" <response_tail>
-# <CDUP_response> ::= "250" <response_tail>
-# <PWD_response> ::= "257" <response_tail_with_absolute_path>
-# <MKD_response> ::= "257" <response_tail_with_absolute_path>
-# <RMD_response> ::= "250" <response_tail>
-# <SYST_response> ::= "215" <response_tail>
-# <HELP_response> ::= ("211-" | "214-") <text> <crlf> (r"(?s)^.*?(?=\r\n(214|211)|$)" <crlf>)* ("214" | "211") <response_tail>
-# <NOOP_response> ::= "200" <response_tail>
-# <SITE_response> ::= r"2\d\d" <response_tail>
-# <TYPE_response> ::= "200" <response_tail>
-# <PASV_response> ::= "227" <response_tail>
-# <ABOR_response> ::= "226" <response_tail>
-# <PASV_response> ::= "227" <response_tail>
-# <LIST_response> ::= ("226" | "250") <response_tail>
-# <REST_response> ::= ("350") <response_tail>
-# <RETR_response> ::= ("226" | "250") <response_tail>
-# <STOR_response> ::= ("226" | "250") <response_tail>
-# <FEAT_response> ::= "211" <response_tail>
-# <SIZE_response> ::= "213" <response_tail>
-# <OPTS_response> ::= "200" <response_tail>
-# <MLSD_response> ::= "200" <response_tail>
-# <AUTH_response> ::= "234" <response_tail>
-# <PBSZ_response> ::= "200" <response_tail>
-# <PROT_response> ::= "200" <response_tail>
-# <EPSV_response> ::= "229" <response_tail>
 
 <QUIT_response> ::= <catch_all_response>
 <USER_response> ::= <catch_all_response>
@@ -161,6 +127,7 @@ where str(<SITE>.<text>) == "HELP"
 <SIZE_response> ::= <catch_all_response>
 <OPTS_response> ::= <catch_all_response>
 <AUTH_response> ::= <catch_all_response>
+<AUTH_TLS_response> ::= <catch_all_response>
 <PBSZ_response> ::= <catch_all_response>
 <PROT_response> ::= <catch_all_response>
 <EPSV_response> ::= '229 Entering Extended Passive Mode (|||' <open_port> '|)\r\n'
