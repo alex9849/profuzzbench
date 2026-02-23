@@ -10,7 +10,7 @@ fi
 
 mkdir -p "${COV_OUT_DIR}"
 
-cd "${WORKDIR}/${TARGET_DIR}-gcov/Source/Release"
+cd "${WORKDIR}/${TARGET_DIR}-fandango/Source/Release"
 
 gcovr -r .. -s -d > /dev/null 2>&1 || true
 
@@ -31,7 +31,7 @@ python3.11 ftp.py
 kill -SIGUSR1 $SERVER_PID 2>/dev/null || true
 wait $SERVER_PID || true
 
-cd "${WORKDIR}/${TARGET_DIR}-gcov/Source/Release"
+cd "${WORKDIR}/${TARGET_DIR}-fandango/Source/Release"
 
 gcovr -r .. \
   --html --html-details \
