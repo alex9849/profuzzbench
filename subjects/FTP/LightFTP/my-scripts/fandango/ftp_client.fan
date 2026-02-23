@@ -41,8 +41,10 @@ class ClientControl(NetworkParty):
     def send(self, message: str | bytes, recipient: Optional[str]) -> None:
         super().send(message, recipient)
         if self.tls_active:
-            if str(message).startswith("PROT C"):
-                ClientData.instance().use_tls = False
+            # Disabled because LightFTP seems to have a bug here
+            #if str(message).startswith("PROT C"):
+            #    print("DATA TLS DISABLE")
+            #    ClientData.instance().use_tls = False
             if str(message).startswith("PROT P"):
                 ClientData.instance().use_tls = True
 
@@ -104,8 +106,11 @@ class ClientData(NetworkParty):
     def receive(self, message: str | bytes | None, sender: Optional[str]) -> None:
         if message is None:
             super().receive("999 Data socket closed.\r\n", sender="SocketControlServer")
+            print("999 Data socket closed.\r\n")
+            print("SocketControlServer: 999 Data socket closed.\r\n")
             return
         super().receive(message.decode("utf-8"), sender="ServerData")
+        print(message.decode("utf-8"))
 
 
 class ServerData(NetworkParty):
@@ -139,6 +144,7 @@ class SocketControlClient(FandangoParty):
             ServerData.instance().stop()
         if str(message).startswith("998"):
             ClientControl.instance().upgrade_tls()
+        print(str(message))
 
     def start(self):
         pass
