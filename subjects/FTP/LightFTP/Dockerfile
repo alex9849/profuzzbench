@@ -112,8 +112,8 @@ RUN cd $WORKDIR && \
 
 # Set up LightFTP for fuzzing
 RUN cd ${WORKDIR}/LightFTP-gcov/Source/Release && \
-    cp ${AFLNET}/tutorials/lightftp/fftp.conf ./ && \
     cp ${AFLNET}/tutorials/lightftp/ftpclean.sh ./
+COPY --chown=ubuntu:ubuntu fftp.conf ${WORKDIR}/LightFTP-gcov/Source/Release/
 
 # Download and compile LightFTP for coverage analysis
 RUN cd $WORKDIR && \
@@ -126,8 +126,8 @@ RUN cd $WORKDIR && \
 
 # Set up LightFTP for fuzzing
 RUN cd ${WORKDIR}/LightFTP-fandango/Source/Release && \
-    cp ${AFLNET}/tutorials/lightftp/fftp.conf ./ && \
     cp ${AFLNET}/tutorials/lightftp/ftpclean.sh ./
+COPY --chown=ubuntu:ubuntu fftp.conf ${WORKDIR}/LightFTP-fandango/Source/Release/
 
 
 COPY --chown=ubuntu:ubuntu in-ftp ${WORKDIR}/in-ftp
